@@ -176,7 +176,25 @@ namespace Gordon360.AuthorizationFilters
                 case Resource.ACCOUNT:
                     // To add a membership for a person, you need to have the the person's identifier.
                     {
-                        return true;
+                        // If the user_id is that of the owner of the account being authorized.,
+                        // allow access
+                        var accntService = new AccountService(new UnitOfWork());
+                        var accntEmail = (string)context.ActionArguments["email"];
+                        var accntToConsider = accntService.GetAccountByEmail(accntEmail);
+                        var is_accntOwner = accntToConsider.GordonID.ToString() == user_id; // User_id is an instance variable.
+
+                        if (is_accntOwner) // If user owns the account
+                            return true;
+                        
+                        // If the user_id is that of the group admin attempting to add a membership for a person,
+                        // allow access
+                        //var activityCode = accntToConsider.ActivityCode;
+                        //var membershipService = new MembershipService(new UnitOfWork());
+                        //var isGroupAdmin = membershipService.GetGroupAdminMembershipsForActivity(activityCode).Where(x => x.IDNumber.ToString() == user_id).Count() > 0;
+                        //if (isGroupAdmin) // If user is a group admin of the activity that the request is sent to
+                            //return true;
+
+                        return false;
                     }
                 case Resource.NEWS:
                     return true;
