@@ -65,7 +65,7 @@ class Test_AllVictoryPromiseTest(control.testCase):
         response = api.get(self.session, self.url)
 
         if not response.status_code == 200:
-            pytest.fail('Expected 200 Unauthorized Error, got {0}.'\
+            pytest.fail('Expected 200 OK, got {0}.'\
                 .format(response.status_code))
         try:
             response.json()

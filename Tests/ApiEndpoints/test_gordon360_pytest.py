@@ -23,13 +23,14 @@ activity_description_360 = '360.gordon.edu'
 activity_image_path_AJG = \
     'https://360apitrain.gordon.edu/browseable/uploads/AJG/canvasImage.png'
 activity_image_path_360 = \
-    'https://360apitrain.gordon.edu/browseable/uploads/360/canvasImage.png'
+    'https://360apitrain.gordon.edu/browseable/uploads/Default/activityImage.png'
+    
 # Blurb to use for testing
 activity_blurb_AJG = 'DOING TESTS, IGNORE'
-activity_blurb_360 = 'This is me changing the description'
+activity_blurb_360 = 'This is a special activity for people who work on the 360 site'
 # URL to use for testing
 activity_URL_AJG = 'http://www.lolcats.com/'
-activity_URL_360 = 'http://360.gordon.edu'
+activity_URL_360 = 'https://360.gordon.edu'
 # Type to use for testing
 activity_type_AJG = 'LEA'
 activity_type_360 = 'STU'
@@ -38,7 +39,7 @@ activity_type_description_AJG = 'Leadership Program'
 activity_type_description_360 = 'Student Life'
 # Join info to use for testing
 activity_join_info_AJG = ''
-activity_join_info_360 = 'me adding special information'
+activity_join_info_360 = 'contact Chris Carlson (Chris.Carlson@gordon.edu)'
 # Id number to use for testing
 valid_id_number = 50146557
 # Session to use for testing

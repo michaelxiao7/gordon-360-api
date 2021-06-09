@@ -65,7 +65,7 @@ class Test_AllAccountTest(control.testCase):
 #    Expected Response Body -- any info that has both of words 
     def test_get_search_by_two_string(self):
         self.session = self.createAuthorizedSession(control.username, control.password)
-        self.url = control.hostURL + 'api/accounts/search/' + control.searchString + '/' + \
+        self.url = control.hostURL + 'api/accounts/search/' + control.searchString + '.' + \
             control.searchString2 + '/'
         response = api.get(self.session, self.url)
         if not response.status_code == 200:

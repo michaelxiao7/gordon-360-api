@@ -35,7 +35,7 @@ class Test_AdminTest(control.testCase):
                 .format(response.text))
         if not (type(admins) is list):
             pytest.fail('Expected list, got {0}.'.format(response.text))
-        print(admins)
+        warnings.warn(str(admins))
         assert [admin for admin in admins if admin['EMAIL'] == "360.facultytest@gordon.edu"]
         assert [admin for admin in admins if admin == site_admin]
 
