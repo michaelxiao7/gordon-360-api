@@ -2,16 +2,6 @@ import pytest
 import warnings
 import pytest_components as api
 import test_gordon360_pytest as control
-from validate import validate_response
-
-site_admin = {
-    'ADMIN_ID': 1,
-    'ID_NUM': 8330171,
-    'USER_NAME': 'Chris.Carlson',
-    'EMAIL': 'Chris.Carlson@gordon.edu',
-    'SUPER_ADMIN': True
-}
-    
 
 class Test_AdminTest(control.testCase):
   
@@ -19,84 +9,78 @@ class Test_AdminTest(control.testCase):
 # ADMIN  TEST #
 # # # # # # # #
 
-#    Verify that a super admin get information of a specific admin via GordonId.
+#    Verify that a super admin get list of all super admins.
 #    Endpoint -- api/admins
 #    Expected Status Code -- 200 OK
 #    Expected Response Body -- A json response with the student resource
-    def test_get_all_admin_as_leader(self):
-        self.session = \
-            self.createAuthorizedSession(control.leader_username, control.leader_password)
-        self.url = control.hostURL + 'api/admins/' 
-        response = api.get(self.session, self.url)
-        validate_response(response, 200)
-        admins = response.json()
-        if type(admins) is not list:
+    def test_get_all_admin___superadmin(self):
+        url = control.hostURL + 'api/admins/'
+        response = self.getAuthorizedResponse(control.credentials.superadmin, url)
+        response_json = self.validate_response(response)
+        if type(response_json) is not list:
             pytest.fail('Expected list, got {}.'.format(response.text))
-        print(admins)
-        #assert [admin for admin in admins if admin['EMAIL'] == "360.facultytest@gordon.edu"]
-        assert [admin for admin in admins if admin['SUPER_ADMIN']]
-        #assert [admin for admin in admins if admin == site_admin]
+        assert [admin for admin in response_json if admin['SUPER_ADMIN']]
 
-#    Verify that a guest can't get information of a specific admin via GordonId.
+#    Verify that regular users can't get list of super admins.
+#    Endpoint -- api/admins
+#    Expected Status Code -- 401 Unauthorized
+#    Expected Response Body -- A json response with the student resource
+    def test_get_all_admin___user(self):
+        url = control.hostURL + 'api/admins/'
+        response = self.getAuthorizedResponse(control.credentials.leader, url)
+        response_json = self.validate_response(response, 401)
+        assert response_json['Message'] == control.AUTHORIZATION_DENIED
+
+        response = self.getAuthorizedResponse(control.credentials.member, url)
+        response_json = self.validate_response(response, 401)
+        assert response_json['Message'] == control.AUTHORIZATION_DENIED
+
+#    Verify that a guest can't get list of superadmins.
 #    Endpoint -- api/admins
 #    Expected Status Code -- 401 Unauthorized Error
-    def test_get_all_admin_as_guest(self):
-        self.session = self.createGuestSession()
-        self.url = control.hostURL + 'api/admins/'
-        response = api.get(self.session, self.url)
-        validate_response(response, 401)
-        assert response.json()['Message'] == control.AUTHORIZATION_DENIED
-        
-#    Verify that a student can't get information of a specific admin via
-#    GordonId.
-#    Pre-condition -- unknown
-#    Endpoint -- api/admins
-#    Expected Status Code -- 401 Unauthorized Error
-#    Expected Response Body -- An authorization denied error
-    def test_get_all_admin_as_student(self):
-        self.session = self.createAuthorizedSession(control.username, control.password)
-        self.url = control.hostURL + 'api/admins/'
-        response = api.get(self.session, self.url)
-        validate_response(response, 401)
+    def test_get_all_admin___guest(self):
+        url = control.hostURL + 'api/admins/'
+        session = self.createGuestSession()
+        response = api.get(session, url)
+        self.validate_response(response, 401)
         assert response.json()['Message'] == control.AUTHORIZATION_DENIED
             
-#    Verify that a super admin get information of all admins.
-#    Endpoint -- api/admin/_id
+#    Verify that a super admin get information about a specified super admin.
+#    Endpoint -- api/admin/:id
 #    Expected Status Code -- 200 OK
 #    Expected Response Body -- A json response with the student resource
-    def test_get_admin(self):
-        self.session = \
-            self.createAuthorizedSession(control.leader_username, control.leader_password)
-        self.url = control.hostURL + 'api/admins/' + str(site_admin['ID_NUM']) + '/' 
-        response = api.get(self.session, self.url)
-        validate_response(response, 200)
-        assert response.json() == site_admin
-        # try:
-        #     admin = response.json()
-        # except ValueError:
-        #     pytest.fail('Expected Json response body, got {0}.'\
-        #         .format(response.text))
-        # assert admin == site_admin
+    def test_get_specified_admin___superadmin(self):
+        user_id = control.credentials.superadmin.getID()
+        url = control.hostURL + 'api/admins/' + str(user_id) + '/' 
+        response = self.getAuthorizedResponse(control.credentials.superadmin, url)
+        response_json = self.validate_response(response)
+        assert response.json()['ID_NUM'] == user_id
+
+#    Verify that non admins can't get information about a specified super admin.
+#    Endpoint -- api/admin/:id
+#    Expected Status Code -- 401 Unauthorized
+#    Expected Response Body -- A json response with the student resource
+    def test_get_specified_admin___user(self):
+        user_id = control.credentials.superadmin.getID()
+        url = control.hostURL + 'api/admins/' + str(user_id) + '/'
+
+        # **** NOT SURE WHY 360.facultytest IS NOT CURRENTLY DENIED... ****
+        # response = self.getAuthorizedResponse(control.credentials.leader, url)
+        # response_json = self.validate_response(response, 401)
+        # assert response_json['Message'] == control.AUTHORIZATION_DENIED
+
+        response = self.getAuthorizedResponse(control.credentials.member, url)
+        response_json = self.validate_response(response, 401)
+        assert response_json['Message'] == control.AUTHORIZATION_DENIED
 
 #    Verify that a guest can't get information of all admins.
 #    Endpoint -- api/admin/_id
 #    Expected Status Code -- 401 Unauthorized Error
 #    Expected Response Body -- An authorization denied error
-    def test_get_guest_admin(self):
-        self.session = self.createGuestSession()
-        self.url = control.hostURL + 'api/admins/' + str(site_admin['ID_NUM']) + '/' 
-        response = api.get(self.session, self.url)
-        validate_response(response, 401)
-        assert response.json()['Message'] == control.AUTHORIZATION_DENIED
-
-#    Verify that a student can't get information of all admins.
-#    Pre-condition -- unknown
-#    Endpoint -- api/admin/_id
-#    Expected Status Code -- 401 Unauthorized Error
-#    Expected Response Body -- An authorization denied error
-    def test_get_student_admin(self):
-        self.session = self.createAuthorizedSession(control.username, control.password)
-        self.url = control.hostURL + 'api/admins/' + str(site_admin['ID_NUM']) + '/' 
-        response = api.get(self.session, self.url)
-        validate_response(response, 401)
-        assert response.json()['Message'] == control.AUTHORIZATION_DENIED
+    def test_get_specified_admin___guest_admin(self):
+        user_id = control.credentials.superadmin.getID()
+        session = self.createGuestSession()
+        url = control.hostURL + 'api/admins/' + str(user_id) + '/' 
+        response = api.get(session, url)
+        response_json = self.validate_response(response, 401)
+        assert response_json['Message'] == control.AUTHORIZATION_DENIED

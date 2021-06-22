@@ -1,11 +1,43 @@
 import pytest
 import warnings
-import string
-from pytest_components import requests
-from datetime import datetime
+#import string
+#from pytest_components import requests
+#from datetime import datetime
 
 import pytest_components as api
 import test_gordon360_pytest as control
+from validate import validate_response
+
+def validate_membership(membership):
+    membershipTypes = {
+        "MembershipID": int,
+        "ActivityCode": str,
+        "ActivityDescription": str,
+        #"ActivityImage": null,
+        "ActivityImagePath": str,
+        "SessionCode": str,
+        "SessionDescription": str,
+        "IDNumber": int,
+        "FirstName": str,
+        "LastName": str,
+        #"Mail_Location": null,
+        "Participation": str,
+        "ParticipationDescription": str,
+        "GroupAdmin": bool,
+        #"StartDate": str,
+        #"EndDate": null,
+        "Description": str,
+        #"ActivityType": null,
+        #"ActivityTypeDescription": null,
+        #"Privacy": null,
+        "AccountPrivate": int,
+    }
+    for k in membershipTypes.keys():
+        if type(membership[k]) is not membershipTypes[k]:
+            warnings.warn("MembershipID={} ActivityCode={} Key={}: "\
+                .format(membership["MembershipID"], membership["ActivityCode"], k)
+                + "Expecting type {} but got type {}"\
+                .format(membershipTypes[k], type(membership[k])))
 
 class Test_AllMembershipTest(control.testCase):
 # # # # # # # # # # #
@@ -13,294 +45,292 @@ class Test_AllMembershipTest(control.testCase):
 # # # # # # # # # # #
 
 #    Test retrieving all membership resources as a leader
-#    Endpoint -- memberships/
+#    Endpoint -- api/memberships/
 #    Expected Status code -- 200 Ok
 #    Expected Content -- List of all memberships
-    def test_get_all_memberships___activity_leader(self):
-        self.session = \
-            self.createAuthorizedSession(control.leader_username, control.leader_password)
-        self.url = control.hostURL + 'api/memberships/'
-        response = api.get(self.session, self.url)
-        if not response.status_code == 200:
-            pytest.fail('Expected 200 OK, got {0}.'\
-                .format(response.status_code))
-        try:
-            response.json()
-        except ValueError:
-            pytest.fail('Expected Json response, got {0}.'\
-                .format(response.text))
-        if not (type(response.json()) is list):
-            pytest.fail('Response was not a list')
-        assert response.json()[0]["ActivityCode"] == control.activity_code_360
-        assert response.json()[0]["ActivityDescription"] == \
-            control.activity_description_360
+    def test_get_all_memberships___leader(self):
+        session = self.createAuthorizedSessionCred(control.credentials.leader)
+        url = control.hostURL + 'api/memberships/'
+        response = api.get(session, url)
+        response_json = self.validate_response(response)
+        if type(response_json) is not list:
+            pytest.fail('Expected list, got {}.'.format(response_json))
+        for membership in response_json:
+            validate_membership(membership)
 
-#    Test retrieving all membership resources as a member
-#    Endpoint -- memberships/
+#    Test retrieving all membership resources as member
+#    Endpoint -- api/memberships/
 #    Expected Status code -- 401 Unauthorized
-    def test_get_all_memberships___regular_member(self):
-        self.session = self.createAuthorizedSession(control.username, control.password)
-        self.url = control.hostURL + 'api/memberships/'
-        response = api.get(self.session, self.url)
-
-        if not response.status_code == 401:
-            pytest.fail('Expected 401 Unauthorized, got {0}.'\
-                .format(response.status_code))
-
-#    Retrieve a specific membership resource as a leader
-#    Endpoint -- api/memberships/:id
-#    Expected Status Code -- 200 OK
-#    Expected Content -- A Json Object with a MembershipID attribute.
-    def test_get_one_membership___activity_leader(self):
-        self.session = \
-            self.createAuthorizedSession(control.leader_username, control.leader_password)
-        self.url = control.hostURL + 'api/memberships/'
-        self.membershipID = -1
-        # Find a valid membership id
-        response = api.get(self.session, self.url)
-        if not response.status_code == 200:
-            pytest.fail('Expected 200 OK, got {0}.'\
-                .format(response.status_code))
-        try:
-            response.json()
-        except ValueError:
-            pytest.fail('Expected json response body, got {0}.'\
-                .format(response.text))
-        if "IDNumber" in response.json()[0]:
-            warnings.warn("Security fault, Gordon ID leak")
+    def test_get_all_memberships___member(self):
+        session = self.createAuthorizedSessionCred(control.credentials.member)
+        url = control.hostURL + 'api/memberships/'
+        response = api.get(session, url)
+        self.validate_response(response, 401)
 
 #    Verify that a leader can fetch memberships for an activity.
 #    Endpoint -- api/memberships/activity/{activityId}
 #    Expected Status Code -- 200 OK
 #    Expected Response Content -- A list of json Objects.
-    def test_get_memberships_for_an_activity___activity_leader(self):
-        self.session = \
-            self.createAuthorizedSession(control.leader_username, control.leader_password)
-        self.url = control.hostURL + 'api/memberships/activity/' + control.activity_code_AJG + '/'
-        response = api.get(self.session, self.url)
-        if not response.status_code == 200:
-            pytest.fail('Expected 200 OK, got {0}.'\
-                .format(response.status_code))
+    def test_get_memberships_for_activity___leader(self):
+        session = self.createAuthorizedSessionCred(control.credentials.leader)
+        url = control.hostURL + 'api/memberships/activity/' \
+                + control.activity_code_360 + '/'
+        response = api.get(session, url)
+        response_json = self.validate_response(response)
+        if type(response_json) is not list:
+            pytest.fail('Expected list, got {}.'.format(response_json))
+        for membership in response_json:
+            validate_membership(membership)
         try:
-            response.json()
-        except ValueError:
-            pytest.fail('Expected Json response body, got {0}.'\
-                .format(response.text))
-        if not (type(response.json()) is list):
-            pytest.fail('Response was not a list.')
-        assert response.json()[0]["ActivityCode"] == control.activity_code_AJG 
-        if "IDNumber" in response.json()[0]:
-            warnings.warn("Security fault, Gordon ID leak")
+            if "IDNumber" in response_json[0]:
+                warnings.warn("Security fault, Gordon ID leak")
+        except IndexError:
+            warnings.warn("Membership list is empty")
 
 #    Verify that a member can fetch memberships for an activity.
 #    Endpoint -- api/memberships/activity/{activityId}
 #    Expected Status Code -- 200 OK
 #    Expected Response Content -- A list of json Objects.
-    def test_get_memberships_for_an_activity___regular_member(self):
-        self.session = self.createAuthorizedSession(control.username, control.password)
-        self.url = control.hostURL + 'api/memberships/activity/' + control.activity_code_AJG + '/'
+    def test_get_memberships_for_activity___member(self):
+        self.session = self.createAuthorizedSession(
+                                control.username,
+                                control.password
+                            )
+        self.url = control.hostURL \
+                + 'api/memberships/activity/' + control.activity_code_360 + '/'
         response = api.get(self.session, self.url)
-        if not response.status_code == 200:
-            warnings.warn("Security fault")
-            pytest.fail('Expected 200 OK, got {0}.'\
-                .format(response.status_code))
+        validate_response(response, 200)
+        if type(response.json()) is not list:
+            pytest.fail('Expected list, got {}.'.format(response.json()))
+        for membership in response.json():
+            validate_membership(membership)
+        try:
+            if "IDNumber" in response.json()[0]:
+                warnings.warn("Security fault, Gordon ID leak")
+        except IndexError:
+            warnings.warn("Membership list is empty")
 
 #    Verify that a member can get all group admins
 #    Endpoint -- api/memberships/activity/{activityId}/group-admin
 #    Expected Status Code -- 200 OK
 #    Expected Response Content -- A list of json Objects.
-    def test_get_admins_for_an_activity___regular_member(self):
-        self.session = self.createAuthorizedSession(control.username, control.password)
-        self.url = control.hostURL + 'api/memberships/activity/' + control.activity_code_AJG + \
-            '/group-admin/'
+    def test_get_admins_for_activity___member(self):
+        self.session = self.createAuthorizedSession(
+                                control.username,
+                                control.password
+                            )
+        self.url = control.hostURL + 'api/memberships/activity/' \
+                + control.activity_code_AJG + '/group-admin/'
         response = api.get(self.session, self.url)
-        if not response.status_code == 200:
-            pytest.fail('Expected 200 OK, got {0}.'\
-                .format(response.status_code))
-        try:
-            response.json()
-        except ValueError:
-            pytest.fail('Expected Json response body, got {0}.'\
-                .format(response.text))
-        if not (type(response.json()) is list):
-            pytest.fail('Response was not a list.')
-        assert response.json()[0]["ActivityCode"] == control.activity_code_AJG 
-        if "IDNumber" in response.json()[0]:
-            warnings.warn("Security fault, Gordon ID leak")
+        validate_response(response, 200)
+        if type(response.json()) is not list:
+            pytest.fail('Expected list, got {}.'.format(response.json()))
+        if len(response.json()) == 0:
+            warnings.warn("No group administrators found")
+        else:
+            for member in response.json():
+                assert member['GroupAdmin']
+            if "IDNumber" in response.json()[0]:
+                warnings.warn("Security fault, Gordon ID leak")
 
 #    Verify that a regular member can fetch all leaders for a specific activity.
 #    Endpoint -- api/memberships/activity/:id/leaders
 #    Expected Status Code -- 200 OK
 #    Expected Response Content -- A list of json objects.
-    def test_get_leader_memberships_for_an_activity___regular_member(self):
-        self.session = self.createAuthorizedSession(control.username, control.password)
-        self.url = control.hostURL + 'api/memberships/activity/' + control.activity_code_AJG + \
-            '/leaders/'
+    def test_get_leader_memberships_for_activity___member(self):
+        self.session = self.createAuthorizedSession(
+                                control.username,
+                                control.password
+                            )
+        self.url = control.hostURL + 'api/memberships/activity/' \
+                + control.activity_code_AJG + '/leaders/'
         response = api.get(self.session, self.url)
-        if not response.status_code == 200:
-            pytest.fail('Expected 200 OK, got {0}.'\
-                .format(response.status_code))
-        try:
-            response.json()
-            assert response.json()[0]['Participation'] == "LEAD"
-        except ValueError:
-            pytest.fail('Expected Json response body, got {0}.'\
-                .format(response.text))
-        if not (type(response.json()) is list):
-            pytest.fail('Response was not a list.')
-        if "IDNumber" in response.json()[0]:
-            warnings.warn("Security fault, Gordon ID leak")
+        validate_response(response, 200)
+        if type(response.json()) is not list:
+            pytest.fail('Expected list, got {}.'.format(response.json()))    
+        if len(response.json()) == 0:
+            warnings.warn("No group administrators found")
+        else:
+            for member in response.json():
+                assert 'LEAD' in member['Participation']
+            if "IDNumber" in response.json()[0]:
+                warnings.warn("Security fault, Gordon ID leak")
 
 #    Verify that a regular member can fetch all advisors for a specific activity.
 #    Endpoint -- api/memberships/activity/:id/advisors
 #    Expected Status Code -- 200 OK
 #    Expected Response Content -- A list of json objects.
-    def test_get_advisors_memberships_for_an_activity___regular_member(self):
-        self.session = self.createAuthorizedSession(control.username, control.password)
-        self.url = control.hostURL + 'api/memberships/activity/' + control.activity_code_AJG + \
-            '/advisors/'
+    def test_get_advisors_memberships_for_activity___member(self):
+        self.session = self.createAuthorizedSession(
+                                control.username,
+                                control.password
+                            )
+        self.url = control.hostURL + 'api/memberships/activity/' \
+                + control.activity_code_AJG + '/advisors/'
         response = api.get(self.session, self.url)
-        if not response.status_code == 200:
-            pytest.fail('Expected 200 OK, got {0}.'\
-                .format(response.status_code))
-        try:
-            response.json()
-        except ValueError:
-            pytest.fail('Expected Json response body, got {0}.'\
-                .format(response.text))
-        if not (type(response.json()) is list):
-            pytest.fail('Response was not a list.')
-        if "IDNumber" in response.json()[0]:
-            warnings.warn("Security fault, Gordon ID leak")
+        validate_response(response, 200)
+        if type(response.json()) is not list:
+            pytest.fail('Expected list, got {}.'.format(response.json()))    
+        if len(response.json()) == 0:
+            warnings.warn("No group administrators found")
+        else:
+            for member in response.json():
+                assert 'ADV' in member['Participation']
+            if "IDNumber" in response.json()[0]:
+                warnings.warn("Security fault, Gordon ID leak")
 
 #    Verify that a regular member can fetch number of followers for a specific 
 #    activity.
-#    Endpoint -- api/memberships/activity/:id/advisors
+#    Endpoint -- api/memberships/activity/:id/followers
 #    Expected Status Code -- 200 OK
 #    Expected Response Content -- An integer
-    def test_get_followers_memberships_for_an_activity___regular_member(self):
-        self.session = self.createAuthorizedSession(control.username, control.password)
-        self.url = control.hostURL + 'api/memberships/activity/' + control.activity_code_AJG + \
-            '/followers/'
+    def test_get_follower_count_for_activity___member(self):
+        self.session = self.createAuthorizedSession(
+                                control.username,
+                                control.password
+                            )
+        self.url = control.hostURL + 'api/memberships/activity/' \
+                + control.activity_code_360 + '/followers/'
         response = api.get(self.session, self.url)
-        if not response.status_code == 200:
-            pytest.fail('Expected 200 OK, got {0}.'\
-                .format(response.status_code))
+        validate_response(response, 200)
         try:
-            response.json()
+            assert type(response.json()) is int and response.json() >= 0
         except ValueError:
-            pytest.fail('Expected Json response body, got {0}.'\
-                .format(response.text))
+            pytest.fail("Expected nonnegative integer")
 
 #    Verify that a regular member can fetch number of followers for a specific
 #    activity in a given session
-#    Endpoint -- api/memberships/activity/:id/advisors
+#    Endpoint -- api/memberships/activity/:id/followers/{session_code}
 #    Expected Status Code -- 200 OK
 #    Expected Response Content -- An integer
-    def test_get_followers_memberships_for_an_activity_session___regular_member(self):
-        self.session = self.createAuthorizedSession(control.username, control.password)
-        self.url = control.hostURL + 'api/memberships/activity/AJG/followers/201809/'
+    def test_get_follower_count_for_activity_session___member(self):
+        self.session = self.createAuthorizedSession(
+                                control.username,
+                                control.password
+                            )
+        self.url = control.hostURL + 'api/memberships/activity/' \
+                + control.activity_code_360 + '/followers/' \
+                + control.session_code + '/'
         response = api.get(self.session, self.url)
-        if not response.status_code == 200:
-            pytest.fail('Expected 200 OK, got {0}.'\
-                .format(response.status_code))
+        validate_response(response, 200)
         try:
-            response.json()
+            assert type(response.json()) is int and response.json() >= 0
         except ValueError:
-            pytest.fail('Expected Json response body, got {0}.'\
-                .format(response.text))
-        assert response.json() == 0
+            pytest.fail("Expected nonnegative integer")
 
 #    Verify that a regular member can fetch number of members for a specific
 #    activity in a given session
 #    Endpoint -- api/memberships/activity/:id/advisors
 #    Expected Status Code -- 200 OK
 #    Expected Response Content -- An integer
-    def test_get_members_for_an_activity_session___regular_member(self):
-        self.session = self.createAuthorizedSession(control.username, control.password)
-        self.url = control.hostURL + 'api/memberships/activity/AJG/members/201809/'
+    def test_get_member_count_for_activity_session___member(self):
+        self.session = self.createAuthorizedSession(
+                                control.username,
+                                control.password
+                            )
+        self.url = control.hostURL + 'api/memberships/activity/' \
+                + control.activity_code_360 + '/members/' \
+                + control.session_code + '/'
         response = api.get(self.session, self.url)
-        if not response.status_code == 200:
-            pytest.fail('Expected 200 OK, got {0}.'\
-                .format(response.status_code))
+        validate_response(response, 200)
         try:
-            response.json()
+            assert type(response.json()) is int and response.json() >= 0
         except ValueError:
-            pytest.fail('Expected Json response body, got {0}.'\
-                .format(response.text))
-        assert response.json() == 3
+            pytest.fail("Expected nonnegative integer")
 
 #    Verify that a regular member can fetch number of members for a 
 #    specific activity.
 #    Endpoint -- api/memberships/activity/:id/members
 #    Expected Status Code -- 200 OK
 #    Expected Response Content -- An integer
-    def test_get_members_for_an_activity___regular_member(self):
-        self.session = self.createAuthorizedSession(control.username, control.password)
-        self.url = control.hostURL + 'api/memberships/activity/' + control.activity_code_AJG + \
-            '/members/'
+    def test_get_member_count_for_activity___member(self):
+        self.session = self.createAuthorizedSession(
+                                control.username,
+                                control.password
+                            )
+        self.url = control.hostURL + 'api/memberships/activity/' \
+                + control.activity_code_360 + '/members/'
         response = api.get(self.session, self.url)
-        if not response.status_code == 200:
-            pytest.fail('Expected 200 OK, got {0}.'\
-                .format(response.status_code))
+        validate_response(response, 200)
         try:
-            response.json()
+            assert type(response.json()) is int and response.json() >= 0
         except ValueError:
-            pytest.fail('Expected Json response body, got {0}.'\
-                .format(response.text))
-        assert response.json() == 88
+            pytest.fail("Expected nonnegative integer")
 
 #    Verify that a leader can fetch memberships associated with them.
 #    Endpoints -- api/memberships/student/:id
 #    Expected Status Code -- 200 OK
 #    Expected Reponse Content -- A list of json objects
-    def test_get_all_my_memberships___activity_leader(self):
-        self.session = \
-            self.createAuthorizedSession(control.leader_username, control.leader_password)
-        self.url = \
-            control.hostURL + 'api/memberships/student/' + str(control.my_id_number) + '/'
+    def test_get_all_my_memberships___leader(self):
+        self.session = self.createAuthorizedSession(
+                                control.leader_username,
+                                control.leader_password
+                            )
+        self.url = control.hostURL + 'api/memberships/student/' \
+                + str(control.my_id_number) + '/'
         response = api.get(self.session, self.url)
-        if not response.status_code == 200:
-            pytest.fail('Expected 200 OK, got {0}.'\
-                .format(response.status_code))
-        try:
-            response.json()
-        except ValueError:
-            pytest.fail('Expected Json response body, got {0}.'\
-                .format(response.text))
-        if not (type(response.json()) is list):
-            pytest.fail('Response was not a list.')
+        validate_response(response, 200)
+        if type(response.json()) is not list:
+            pytest.fail('Expected list, got {}.'.format(response.json()))
+        for membership in response.json():
+            if control.my_id_number != membership["IDNumber"]:
+                warnings.warn("Security fault: ID numbers do not match")
+
+#    Verify that a member cannot fetch memberships associated with others
+#    by their ID.
+#    Endpoints -- api/memberships/student/:id
+#    Expected Status Code -- 401 Unauthorized
+#    Expected Reponse Content -- A list of json objects
+    def test_get_all_my_memberships___member(self):
+        self.session = self.createAuthorizedSession(
+                                control.username,
+                                control.password
+                            )
+        self.url = control.hostURL + 'api/memberships/student/' \
+                + str(control.leader_id_number) + '/'
+        response = api.get(self.session, self.url)
+        validate_response(response, 401)
+
+#    Verify that a leader can fetch memberships based on username
+#    Endpoints -- api/memberships/student/:id
+#    Expected Status Code -- 200 OK
+#    Expected Reponse Content -- A list of json objects
+    def test_get_memberships_username___leader(self):
+        self.session = self.createAuthorizedSession(
+                                control.leader_username,
+                                control.leader_password
+                            )
+        self.url = control.hostURL + 'api/memberships/student/username/' \
+                + control.username + '/'
+        response = api.get(self.session, self.url)
+        validate_response(response, 200)
+        if type(response.json()) is not list:
+            pytest.fail('Expected list, got {}.'.format(response.json()))
         if control.my_id_number != response.json()[0]["IDNumber"]:
-            warnings.warn("Security fault, not the user's Gordon ID")
+            warnings.warn("Security fault, not the user's ID")
 
 #    Verify that a member can fetch memberships based on username
 #    Endpoints -- api/memberships/student/:id
 #    Expected Status Code -- 200 OK
 #    Expected Reponse Content -- A list of json objects
-    def test_get_memberships_username___activity_leader(self):
-        self.session = \
-            self.createAuthorizedSession(control.leader_username, control.leader_password)
-        self.url = \
-            control.hostURL + 'api/memberships/student/username/' + control.username + '/'
+    def test_get_memberships_username___member(self):
+        self.session = self.createAuthorizedSession(
+                                control.username,
+                                control.password
+                            )
+        self.url = control.hostURL + 'api/memberships/student/username/' \
+                + control.leader_username + '/'
         response = api.get(self.session, self.url)
-        if not response.status_code == 200:
-            pytest.fail('Expected 200 OK, got {0}.'\
-                .format(response.status_code))
-        try:
-            response.json()
-        except ValueError:
-            pytest.fail('Expected Json response body, got {0}.'\
-                .format(response.text))
-        if not (type(response.json()) is list):
-            pytest.fail('Response was not a list.')
+        validate_response(response, 200)
+        if type(response.json()) is not list:
+            pytest.fail('Expected list, got {}.'.format(response.json()))
         if control.my_id_number != response.json()[0]["IDNumber"]:
             warnings.warn("Security fault, not the user's ID")
-
 #    Verify that leader can fetch someone else's memberships.
 #    Endpoint -- api/memberships/student/:id
 #    Expected Status Code -- 200 OK.
 #    Expected Response Content --  A list of json objects.
-    def test_get_all_memberships_for_someone_else___activity_leader(self):
+    def test_get_all_memberships_for_someone_else___leader(self):
         self.session = \
             self.createAuthorizedSession(control.leader_username, control.leader_password)
         self.url = control.hostURL + 'api/memberships/student/' + str(control.valid_id_number)
@@ -313,8 +343,8 @@ class Test_AllMembershipTest(control.testCase):
         except ValueError:
             pytest.fail('Expected Json response body, got {0}.'\
                 .format(response.text))
-        if not (type(response.json()) is list):
-            pytest.fail('Response was not a list')
+        if type(response.json()) is not list:
+            pytest.fail('Expected list, got {}.'.format(response.json()))
         if control.valid_id_number != response.json()[0]["IDNumber"]:
             warnings.warn("Security fault, not the user's ID")
 
@@ -364,7 +394,7 @@ class Test_AllMembershipTest(control.testCase):
 #    Expected Status Code -- 200 OK
 #    Expected Content -- A json response with the created membership
     @pytest.mark.skipif(not control.unknownPrecondition, reason = "409 Error")
-    def test_post_new_membership_for_someone___activity_leader(self):
+    def test_post_new_membership_for_someone___leader(self):
         self.session = \
             self.createAuthorizedSession(control.leader_username, control.leader_password)
         self.url = control.hostURL + 'api/memberships/'
@@ -424,7 +454,7 @@ class Test_AllMembershipTest(control.testCase):
 #    Expected Status Code -- 200 OK
 #    Expected Content -- A json response with the created membership
     @pytest.mark.skipif(not control.unknownPrecondition, reason = "409 Error")
-    def test_post_new_leader_membership_for_someone___activity_leader(self):
+    def test_post_new_leader_membership_for_someone___leader(self):
         self.session = \
             self.createAuthorizedSession(control.leader_username, control.leader_password)
         self.url = control.hostURL + 'api/memberships/'
@@ -490,7 +520,7 @@ class Test_AllMembershipTest(control.testCase):
 #    Expected Status Code -- 200 OK
 #    Expected Content -- A json object with a MEMBERSHIP_ID attribute.
     @pytest.mark.skipif(not control.unknownPrecondition, reason = "Error in setup")
-    def test_put_edited_membership_member_to_leader___activity_leader(self):
+    def test_put_edited_membership_member_to_leader___leader(self):
         self.session = \
             self.createAuthorizedSession(control.leader_username, control.leader_password)
         self.url = control.hostURL + 'api/memberships/'
@@ -547,7 +577,7 @@ class Test_AllMembershipTest(control.testCase):
 #    Expected Status Code -- 200 OK
 #    Expected Content -- A json object with a MEMBERSHIP_ID attribute.
     @pytest.mark.skipif(not control.unknownPrecondition, reason = "Error in setup.")
-    def test_put_edited_membership_leader_to_member___activity_leader(self):
+    def test_put_edited_membership_leader_to_member___leader(self):
         self.session = \
             self.createAuthorizedSession(control.leader_username, control.leader_password)
         self.url = control.hostURL + 'api/memberships/'
@@ -603,7 +633,7 @@ class Test_AllMembershipTest(control.testCase):
 #    Expected Status Code -- 200 OK
 #    Expected Response Content -- The membership resource that wad deleted.
     @pytest.mark.skipif(not control.unknownPrecondition, reason = "Error doing setup.")
-    def test_delete_valid_membership___activity_leader(self):
+    def test_delete_valid_membership___leader(self):
         self.session = \
             self.createAuthorizedSession(control.leader_username, control.leader_password)
         self.url = control.hostURL + 'api/memberships/'

@@ -1,4 +1,4 @@
-#import pytest
+import pytest
 #import warnings
 #import string
 #from pytest_components import requests
@@ -6,7 +6,7 @@ import requests
 #from datetime import datetime
 
 import credentials
-#import pytest_components as api
+import pytest_components as api
 
 
 # # # # # # # # #
@@ -45,6 +45,7 @@ activity_join_info_360 = 'contact Chris Carlson (Chris.Carlson@gordon.edu)'
 valid_id_number = 50146557
 # Session to use for testing
 session_code = '201809'
+#session_code = '201909'
 # Specific term to use for testing
 term_code = 'FA18'
 # Participation Code that correspond to member:
@@ -83,14 +84,18 @@ AUTHORIZATION_DENIED = 'Authorization has been denied for this request.'
 username = credentials.username
 password = credentials.password
 my_id_number = credentials.id_number
-grant_payload = \
-    { 'username':username, 'password':password, 'grant_type':'password' }
+#grant_payload = \
+#    { 'username':username, 'password':password, 'grant_type':'password' }
 
 leader_username = credentials.username_activity_leader
 leader_password = credentials.password_activity_leader
 leader_id_number = credentials.id_number_activity_leader
-leader_grant_payload = { 'username':leader_username, \
-    'password':leader_password, 'grant_type':'password' }
+#leader_grant_payload = { 'username':leader_username, \
+#    'password':leader_password, 'grant_type':'password' }
+
+superadmin_username = credentials.username_superadmin
+superadmin_password = credentials.password_superadmin
+superadmin_id_number = credentials.id_number_superadmin
 
 # Global variables for myschedule test events
 event_id = '10000'
@@ -114,6 +119,36 @@ unknownPrecondition = False
 # Logins
 class testCase:
 
+    def getAuthorizedResponse(self, credentials, url):
+        """Create an authorized session to test authorized calls."""
+        payload = {
+            'grant_type':'password',
+            'username':credentials.username,
+            'password':credentials.password,
+        }
+        response = requests.post(hostURL + 'token', payload)
+        authorization_header = response.json()["token_type"] \
+                        + " " + response.json()["access_token"]
+        session = requests.Session()
+        session.verify = True
+        session.headers.update({"Authorization":authorization_header})
+        return api.get(session, url)
+
+    def createAuthorizedSessionCred(self, credentials):
+        """Create an authorized session to test authorized calls."""
+        payload = {
+            'grant_type':'password',
+            'username':credentials.username,
+            'password':credentials.password,
+        }
+        response = requests.post(hostURL + 'token', payload)
+        authorization_header = response.json()["token_type"] \
+                        + " " + response.json()["access_token"]
+        session = requests.Session()
+        session.verify = True
+        session.headers.update({"Authorization":authorization_header})
+        return session
+
     def createAuthorizedSession(self, username, password):
         """Create an authorized session to test authorized calls."""
         r = requests.post(
@@ -130,7 +165,23 @@ class testCase:
         session.headers.update({"Authorization":authorization_header})
         return session
 
-
     def createGuestSession(self):
         """Create a guest session to test guest calls."""
         return requests.Session()
+
+    def validate_response(self, response, expected_code=200):
+        """Verify HTTP status code matches expected code and response is JSON.
+
+        Args:
+            response (requests.models.Response): HTTP response object.
+            expected_code (int): expected status code (default is 200 OK).
+        """
+        if response.status_code != expected_code:
+            pytest.fail("Expected status {}, got {}."\
+                .format(expected_code, response.status_code))
+        try:
+            json = response.json()
+        except ValueError:
+            pytest.fail("Expected JSON response body, got {}.".format(json))
+            # or could format response.text
+        return json
