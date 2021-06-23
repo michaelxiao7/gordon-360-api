@@ -438,7 +438,7 @@ namespace Gordon360.Controllers.Api
         [HttpPut]
         [Route("{id}")]
         [StateYourBusiness(operation = Operation.UPDATE, resource = Resource.MEMBERSHIP)]
-        public IHttpActionResult Put(int id, [FromBody]MEMBERSHIP membership)
+        public ActionResult<MEMBERSHIP> Put(int id, [FromBody]MEMBERSHIP membership)
         {
             if (!ModelState.IsValid || membership == null || id != membership.MEMBERSHIP_ID)
             {
@@ -469,7 +469,7 @@ namespace Gordon360.Controllers.Api
         [HttpPut]
         [Route("{id}/group-admin")]
         [StateYourBusiness(operation = Operation.UPDATE, resource = Resource.MEMBERSHIP)]
-        public IHttpActionResult ToggleGroupAdmin([FromBody]MEMBERSHIP membership)
+        public ActionResult<MEMBERSHIP> ToggleGroupAdmin([FromBody]MEMBERSHIP membership)
         {
             if (!ModelState.IsValid || membership == null)
             {
@@ -502,7 +502,7 @@ namespace Gordon360.Controllers.Api
         [HttpPut]
         [Route("{id}/privacy/{p}")]
         [StateYourBusiness(operation = Operation.UPDATE, resource = Resource.MEMBERSHIP_PRIVACY)]
-        public IHttpActionResult TogglePrivacy(int id, bool p)
+        public ActionResult TogglePrivacy(int id, bool p)
         {
             if (!ModelState.IsValid)
             {
@@ -529,7 +529,7 @@ namespace Gordon360.Controllers.Api
         [HttpDelete]
         [Route("{id}")]
         [StateYourBusiness(operation = Operation.DELETE, resource = Resource.MEMBERSHIP)]
-        public IHttpActionResult Delete(int id)
+        public ActionResult<MEMBERSHIP> Delete(int id)
         {
             var result = _membershipService.Delete(id);
 
@@ -547,7 +547,7 @@ namespace Gordon360.Controllers.Api
         /// <param name="id">The student id</param>
         [HttpGet]
         [Route("isGroupAdmin/{id}")]
-        public IHttpActionResult IsGroupAdmin(int id)
+        public ActionResult<bool> IsGroupAdmin(int id)
         {
             var result = _membershipService.IsGroupAdmin(id);
 
