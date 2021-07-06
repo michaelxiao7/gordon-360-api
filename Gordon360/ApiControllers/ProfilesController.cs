@@ -347,7 +347,7 @@ namespace Gordon360.Controllers.Api
 
             return Ok(strengths);
         }
-
+        /* @TODO: fix images
         /// <summary>Get the profile image of currently logged in user</summary>
         /// <returns></returns>
         [HttpGet]
@@ -755,7 +755,7 @@ namespace Gordon360.Controllers.Api
             }
             _profileService.UpdateProfileImage(authenticatedUserIdString, null, null);  //update database
             return Ok();
-        }
+        }*/
 
 
         /// <summary>
