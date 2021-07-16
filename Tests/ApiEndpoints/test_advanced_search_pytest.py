@@ -1,9 +1,8 @@
 import pytest
 import warnings
-from urllib.parse import urljoin
-import pytest_components as api
 import Control
-import credentials
+import pytest_components as api
+import pytest_credentials as credentials
 
 ROUTE_PREFIX = "api/advanced-search"
 SUBROUTES = [

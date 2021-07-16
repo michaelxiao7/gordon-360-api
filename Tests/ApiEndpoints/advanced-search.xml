@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<!DOCTYPE advanced-search SYSTEM "advanced-search.dtd">
+<advanced-search>
+  <user type="facstaff">
+    <username>jonathan.senning</username>
+    <firstname>Jon</firstname>
+    <lastname>Senning</lastname>
+    <hometown>south hamilton</hometown>
+    <state>MA</state>
+    <xxdepartment>Mathematics and Computer Science</xxdepartment>
+    <building>Ken Olsen Science Center</building>
+  </user>
+
+  <user type="facstaff">
+    <firstname>Chris</firstname>
+    <lastname>Jones</lastname>
+  </user>
+  <!--
+  <user type="facstaff">
+    <building>Ken Olson Science Center</building>
+  </user>
+-->
+  <user type="student">
+    <username>cameron.abbot</username>
+    <firstname>Cameron</firstname>
+    <lastname>Abbot</lastname>
+    <major>Computer Science</major>
+    <classtype>Junior</classtype>
+    <hometown>Windsor</hometown>
+    <state>CT</state>
+  </user>
+
+  <user type="student">
+    <major>Mathematics</major>
+    <!-- <classtype>First Year</classtype> -->
+  </user>
+
+  <user type="alum">
+    <firstname>Jessica</firstname>
+    <lastname>Barrett</lastname>
+  </user>
+
+</advanced-search>

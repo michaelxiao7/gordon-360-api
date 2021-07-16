@@ -1,0 +1,18 @@
+<!ELEMENT advanced-search (user*)>
+<!ELEMENT user (username, firstname, lastname, major, minor, hall, class, hometown, state, country, department, building)>
+<!ATTLIST user
+	type CDATA #REQUIRED
+>
+<!ELEMENT username (#PCDATA)>
+<!ELEMENT firstname (#PCDATA)>
+<!ELEMENT lasttname (#PCDATA)>
+<!ELEMENT major (#PCDATA)>
+<!ELEMENT minor (#PCDATA)>
+<!ELEMENT hall (#PCDATA)>
+<!ELEMENT classtype (#PCDATA)>
+<!ELEMENT hometown (#PCDATA)>
+<!ELEMENT state (#PCDATA)>
+<!ELEMENT country (#PCDATA)>
+<!ELEMENT department (#PCDATA)>
+<!ELEMENT building (#PCDATA)>
+>

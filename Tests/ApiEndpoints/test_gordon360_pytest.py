@@ -5,7 +5,7 @@ import pytest
 import requests
 #from datetime import datetime
 
-import credentials
+import pytest_credentials as credentials
 import pytest_components as api
 
 
@@ -64,8 +64,8 @@ searchString2 = 'studenttest' #'lindsay'
 Event_OR_Type_ID = '10'
 
 # Profile image path
-FILE_PATH_PROFILE = r'..\..\Gordon360\browseable\profile\Default\profile.png'
-FILE_PATH_ID = r'..\..\Gordon360\browseable\profile\Default\ID.png'
+FILE_PATH_PROFILE = r'../../Gordon360/browseable/profile/Default/profile.png'
+FILE_PATH_ID = r'../../Gordon360/browseable/profile/Default/ID.png'
 
 # API. Choose only 1. 
 # localhost set up using Visual Studio to enable local testing.
