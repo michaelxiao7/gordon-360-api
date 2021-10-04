@@ -12,10 +12,14 @@ namespace Gordon360.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class Dining_Student_Meal_Choice
+    public partial class Dining_Meal_Plan_Change_History
     {
         public int ID_NUM { get; set; }
-        public string MEAL_CHOICE_ID { get; set; }
+        public string OLD_PLAN { get; set; }
+        public string OLD_PLAN_ID { get; set; }
+        public string NEW_PLAN { get; set; }
+        public string NEW_PLAN_ID { get; set; }
         public string SESS_CDE { get; set; }
+        public Nullable<System.DateTime> CHANGE_DATE { get; set; }
     }
 }
