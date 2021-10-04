@@ -140,6 +140,7 @@ namespace Gordon360.Services
                 trim.IDNumber = x.IDNumber;
                 trim.FirstName = x.FirstName.Trim();
                 trim.LastName = x.LastName.Trim();
+                trim.Description = x.Description.Trim();
                 trim.Participation = x.Participation.Trim();
                 trim.ParticipationDescription = x.ParticipationDescription.Trim();
                 return trim;
