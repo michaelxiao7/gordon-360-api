@@ -34,6 +34,36 @@ namespace Gordon360.Models.ViewModels
 
             return vm;
         }
+
+        public bool ActivityDescriptionMatches(string matchString)
+        {
+            return ActivityDescription?.ToLower() == matchString;
+        }
+
+        public bool ActivityDescriptionStartsWith(string matchString)
+        {
+            return ActivityDescription?.ToLower()?.StartsWith(matchString) ?? false;
+        }
+
+        public bool ActivityDescriptionContains(string matchString) {
+            return ActivityDescription?.ToLower()?.Contains(matchString) ?? false;
+        }
+
+        public bool ActivityBlurbContains(string matchString)
+        {
+            return ActivityBlurb?.ToLower()?.Contains(matchString) ?? false;
+        }
+
+        public bool ActivityTypeMatches(string matchString)
+        {
+            return ActivityTypeDescription?.ToLower() == matchString;
+        }
+
+
+        public bool ActivityCodeMatches(string matchString)
+        {
+            return ActivityCode?.ToLower() == matchString;
+        }
     }
 
    

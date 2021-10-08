@@ -60,6 +60,14 @@ namespace Gordon360.Services
         AccountViewModel GetAccountByUsername(string username);
     }
 
+    public interface ISearchService
+    {
+        AccountViewModel Get(string id);
+        IEnumerable<AccountViewModel> GetAll();
+        AccountViewModel GetAccountByEmail(string email);
+        AccountViewModel GetAccountByUsername(string username);
+    }
+
     public interface IWellnessService
     {
         WellnessViewModel GetStatus(string id);
