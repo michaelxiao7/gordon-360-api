@@ -223,6 +223,7 @@
     <Compile Include="ApiControllers\MyScheduleController.cs" />
     <Compile Include="ApiControllers\SaveController.cs" />
     <Compile Include="ApiControllers\ScheduleControlController.cs" />
+    <Compile Include="ApiControllers\UpdateController.cs" />
     <Compile Include="ApiControllers\WellnessController.cs" />
     <Compile Include="Models\ACCOUNT.cs">
       <DependentUpon>CCT_DB_Models.tt</DependentUpon>
@@ -852,9 +853,6 @@
     <Content Include="Models\CCT_DB_Models.edmx.diagram">
       <DependentUpon>CCT_DB_Models.edmx</DependentUpon>
     </Content>
-    <None Include="secrets.config">
-      <SubType>Designer</SubType>
-    </None>
     <EmbeddedResource Include="version.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
@@ -901,6 +899,7 @@
     <None Include="Properties\PublishProfiles\CustomProfile.pubxml" />
     <None Include="Properties\PublishProfiles\DEV.pubxml" />
     <None Include="Properties\PublishProfiles\PROD.pubxml" />
+    <Content Include="secrets.config" />
   </ItemGroup>
   <ItemGroup />
   <PropertyGroup>
